@@ -1,0 +1,20 @@
+name: RepoPilot CI Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm CI started
+        run: echo "Testing RepoPilot CI failure detection"
+
+      - name: Simulate CI failure
+        run: |
+          echo "This failure is intentional for testing."
+          exit 1
