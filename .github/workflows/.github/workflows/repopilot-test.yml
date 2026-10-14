@@ -1,0 +1,14 @@
+name: RepoPilot CI Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate CI failure
+        run: |
+          echo "Testing RepoPilot CI failure detection"
+          exit 1
