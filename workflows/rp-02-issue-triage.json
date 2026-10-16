@@ -1,0 +1,460 @@
+{
+  "name": "RP-02 Issue Triage",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -160
+      ],
+      "id": "e532e9d6-24cb-40fc-8a6d-d06828715b04",
+      "name": "IssueTriageSubworkflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6c30a64f-b7ce-46e5-8955-7eae204652fe",
+              "leftValue": "={{ $json.event_type }}",
+              "rightValue": "issues",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -160
+      ],
+      "id": "5ca52ebf-4eb2-4fae-8efb-78a332a1a4fa",
+      "name": "IsIssueEvent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe7aacb4-bc75-4cd0-baf0-80c325216c2b",
+              "name": "repository",
+              "value": "={{ $json.repository }}",
+              "type": "string"
+            },
+            {
+              "id": "39e6b322-5561-4b2d-a2c7-fc14bd9a8155",
+              "name": "issue_number",
+              "value": "={{ $json.issue_number}}",
+              "type": "number"
+            },
+            {
+              "id": "02c58017-98a9-48e7-b895-f17f6209e4b7",
+              "name": "issue_title",
+              "value": "={{ $json.issue_title }}",
+              "type": "string"
+            },
+            {
+              "id": "a220bf1b-1d47-40b8-98cd-b0cf27c9b416",
+              "name": "issue_body",
+              "value": "={{ $json.issue_body || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "9b5fe760-e44c-45d7-a57a-8f03ffc8a6c9",
+              "name": "action",
+              "value": "={{ $json.event_action}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        -160
+      ],
+      "id": "e7bcab23-f284-43a1-bc7b-2119be671d42",
+      "name": "ExtractIssueDetails"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5bY1bI5ZknOYm5p9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5bY1bI5ZknOYm5p9",
+          "cachedResultName": "RP-05: Notification Service"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        1696,
+        -160
+      ],
+      "id": "3f4948bf-46a0-442b-9241-9d03a199833d",
+      "name": "Call 'RP-05: Notification Service'"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Repository: {{ $json.repository }}\nIssue number: {{ $json.issue_number }}\nTitle: {{ $json.issue_title }}\nBody: {{ $json.issue_body }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are RepoPilot, an expert GitHub issue triage assistant.  Analyze the issue title and body. Classify it conservatively.  Return: - category: exactly one of bug, feature, documentation, needs-review - priority: exactly one of high, medium, low - labels: an array containing appropriate labels from bug, enhancement, documentation, needs-review, priority-high, priority-medium, priority-low - reason: one concise sentence explaining the classification  Priority rules: - high: confirmed or strongly indicated security risk, data loss, production outage, or urgent critical issue - medium: a meaningful bug or problem affecting functionality - low: ordinary feature requests, documentation changes, and minor improvements  Do not invent facts. If the issue is unclear, use needs-review and explain why."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        -160
+      ],
+      "id": "8b4a75a3-ccb9-4436-9703-1ef0efbee225",
+      "name": "Groq Issue Triage AI"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        688,
+        80
+      ],
+      "id": "0feff589-9da8-4cbd-8a12-c0e08d151367",
+      "name": "openai/gpt-oss-120b",
+      "credentials": {
+        "groqApi": {
+          "id": "QjE12nU9gLZ3joLH",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"bug\",\n  \"priority\": \"medium\",\n  \"labels\": [\"bug\", \"priority-medium\"],\n  \"reason\": \"The issue describes a functional problem that needs investigation.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        80
+      ],
+      "id": "3195cccf-2755-444a-9d49-1d76dcba48c0",
+      "name": "Parse AI Triage Output"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "84d488b6-ab23-4e83-bf54-7e8eefa4ab5c",
+              "name": "suggested_category",
+              "value": "={{ $json.output.category }}",
+              "type": "string"
+            },
+            {
+              "id": "8f1ef258-6434-4c3c-98ec-00a8d119c9bf",
+              "name": "suggested_priority",
+              "value": "={{ $json.output.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "0c02de5c-0135-4965-a98d-bd2a1b4a2d31",
+              "name": "suggested_labels",
+              "value": "={{ $json.output.labels }}",
+              "type": "array"
+            },
+            {
+              "id": "e032a49d-04b8-4a40-8692-f5a53484e57f",
+              "name": "triage_reason",
+              "value": "={{ $json.output.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "1fc69fa5-9d3a-4c51-8a8b-ad6aa7fc37b4",
+              "name": "repository",
+              "value": "={{ $('ExtractIssueDetails').item.json.repository }}",
+              "type": "string"
+            },
+            {
+              "id": "bd6539db-72c0-482f-81c0-f8d36945891d",
+              "name": "issue_number",
+              "value": "={{ $('ExtractIssueDetails').item.json.issue_number }}",
+              "type": "number"
+            },
+            {
+              "id": "94182d79-e944-49ab-a0e0-adba5d47fc50",
+              "name": "issue_title",
+              "value": "={{ $('ExtractIssueDetails').item.json.issue_title }}",
+              "type": "string"
+            },
+            {
+              "id": "accda219-8da5-42b4-8856-4ea7045c9090",
+              "name": "issue_body",
+              "value": "={{ $('ExtractIssueDetails').item.json.issue_body }}",
+              "type": "string"
+            },
+            {
+              "id": "04cca0fa-8812-4587-9aed-37e66d0029e7",
+              "name": "event_action",
+              "value": "={{ $('ExtractIssueDetails').item.json.event_action }}",
+              "type": "string"
+            },
+            {
+              "id": "8f1882f1-4054-4444-bd1c-08aea85000bc",
+              "name": "event_type",
+              "value": "={{ $('ExtractIssueDetails').item.json.event_type }}",
+              "type": "string"
+            },
+            {
+              "id": "5459b238-a980-4d70-b70d-257ef6a9583b",
+              "name": "action",
+              "value": "={{ $('ExtractIssueDetails').item.json.action }}",
+              "type": "string"
+            },
+            {
+              "id": "8fe46693-d7ca-43f8-b3f3-ba48772fa4bd",
+              "name": "workflow_run",
+              "value": "={{ $('ExtractIssueDetails').item.json.workflow_run }}",
+              "type": "string"
+            },
+            {
+              "id": "0850a036-4b65-4229-bd0f-ad05012abf7e",
+              "name": "triage_status",
+              "value": "completed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1024,
+        -160
+      ],
+      "id": "f23e92d8-1754-4b86-b021-8da9aedae481",
+      "name": "Apply AI Triage Results"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $json.repository }}/issues/{{ $json.issue_number }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"labels\": $json.suggested_labels } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1248,
+        -80
+      ],
+      "id": "a8a6059d-cdee-4fb8-b908-d7e9402fa85d",
+      "name": "Apply Labels to Github Issue",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "QAWT2Zbn5Z7x5LMS",
+          "name": "RepoPilot Github Header Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        -160
+      ],
+      "id": "8cf67c2c-6085-4414-8076-bda5e291ec9b",
+      "name": "Preserve Original Issue Details"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IssueTriageSubworkflow": {
+      "main": [
+        [
+          {
+            "node": "IsIssueEvent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsIssueEvent": {
+      "main": [
+        [
+          {
+            "node": "ExtractIssueDetails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractIssueDetails": {
+      "main": [
+        [
+          {
+            "node": "Groq Issue Triage AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Issue Triage AI": {
+      "main": [
+        [
+          {
+            "node": "Apply AI Triage Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "openai/gpt-oss-120b": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Groq Issue Triage AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Triage Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Groq Issue Triage AI",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply AI Triage Results": {
+      "main": [
+        [
+          {
+            "node": "Preserve Original Issue Details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Apply Labels to Github Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Labels to Github Issue": {
+      "main": [
+        [
+          {
+            "node": "Preserve Original Issue Details",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Preserve Original Issue Details": {
+      "main": [
+        [
+          {
+            "node": "Call 'RP-05: Notification Service'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9bUhWZrP2EtVTjf7",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "b35e0f05-3541-400a-a774-d0d5aae55281",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a9a2bd3d3e3c166f28572eb49d334b513ddca5ffff6c29f32687a2b58f08ce95"
+  },
+  "nodeGroups": [],
+  "id": "HRI2N7bsASlxtuoT",
+  "tags": []
+}

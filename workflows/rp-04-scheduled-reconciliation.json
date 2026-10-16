@@ -1,0 +1,281 @@
+{
+  "name": "RP-04 Scheduled Reconciliation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "fc4c0cd5-6ce3-4dfe-872f-5a18a18d8809",
+      "name": "Every 15 mins Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cf6ee8e8-b36f-4c1d-a97e-c307dfdeca2b",
+              "name": "job_name",
+              "value": "repopilot_reconciliation",
+              "type": "string"
+            },
+            {
+              "id": "d2e51afd-aea2-45a1-91c3-33abb36f4677",
+              "name": "job_status",
+              "value": "started",
+              "type": "string"
+            },
+            {
+              "id": "6905f292-e960-475a-bcf9-e2b3e7f2f78a",
+              "name": "started_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "775e368f-e8eb-4cfe-b081-c6d7a6e2bb27",
+      "name": "ReconciliationMarker"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "dyLbI2Cq2fvT4quz",
+          "mode": "list",
+          "cachedResultName": "RepoPilot_Events",
+          "cachedResultUrl": "/projects/58OCYX8r9y4I0Yz5/datatables/dyLbI2Cq2fvT4quz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "notification_status",
+              "keyValue": "pending"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "80c0f06f-05ac-4a82-af80-628199114f65",
+      "name": "Get Pending Notifications"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c5c1230d-1117-4aef-bb18-3304ae760c8f",
+              "leftValue": "={{ $json.event_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -96
+      ],
+      "id": "6b7d1cd1-c764-40d5-b65a-564149f8c2de",
+      "name": "Has Pending Notification"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5bY1bI5ZknOYm5p9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5bY1bI5ZknOYm5p9",
+          "cachedResultName": "RP-05: Notification Service"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "c8ad3933-f613-4f1c-94eb-990245cc4cbd",
+      "name": "Retry Pending Notification"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d857ad2e-0f3e-4efc-99cf-b90e3bd82ec1",
+              "name": "ci_status",
+              "value": "failure_detected",
+              "type": "string"
+            },
+            {
+              "id": "82cf0b75-5c81-4205-9eb6-667839879e39",
+              "name": "repository",
+              "value": "={{ $json.repository }}",
+              "type": "string"
+            },
+            {
+              "id": "5ff2b563-519f-408d-97ed-193facd6f3bd",
+              "name": "workflow_name",
+              "value": "={{ $json.workflow_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a2d99896-1d1f-43b2-ad40-c7bde376957a",
+              "name": "workflow_conclusion",
+              "value": "={{ $json.conclusion }}",
+              "type": "string"
+            },
+            {
+              "id": "1cbfe638-480c-49b9-ad4f-25c01ed91cb6",
+              "name": "failure_url",
+              "value": "={{ $json.run_url }}",
+              "type": "string"
+            },
+            {
+              "id": "bfd5bfed-57fc-4eba-80f7-06407f3cb617",
+              "name": "event_type",
+              "value": "workflow_run",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "16b33d29-0faa-4cc8-863f-7ebb3498ea33",
+      "name": "Prepare CI Pending Alert"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every 15 mins Trigger": {
+      "main": [
+        [
+          {
+            "node": "ReconciliationMarker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ReconciliationMarker": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Pending Notification": {
+      "main": [
+        [
+          {
+            "node": "Prepare CI Pending Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare CI Pending Alert": {
+      "main": [
+        [
+          {
+            "node": "Retry Pending Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Notifications": {
+      "main": [
+        [
+          {
+            "node": "Has Pending Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9bUhWZrP2EtVTjf7",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "ab30d30b-dd85-4f1b-a3bd-4f1a8c3a4d85",
+  "meta": {
+    "instanceId": "a9a2bd3d3e3c166f28572eb49d334b513ddca5ffff6c29f32687a2b58f08ce95"
+  },
+  "nodeGroups": [],
+  "id": "k250chlHv7BtRHWz",
+  "tags": []
+}

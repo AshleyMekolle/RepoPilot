@@ -1,0 +1,419 @@
+{
+  "name": "RP-05: Notification Service",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        160
+      ],
+      "id": "206b3734-012d-4e01-a712-d81c45fbb5c8",
+      "name": "NotificationServiceTrigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08ef323b-7960-4c7f-8515-fe972aeb6df8",
+              "name": "notification_icon",
+              "type": "string",
+              "value": "={{ $json.ci_status === \"failure_detected\" ? \"🚨\" : $json.event_type === \"workflow_error\" ? \"⚠️\" : \"🏷️\" }}"
+            },
+            {
+              "id": "a6a1e501-6bcf-4ec2-a8d8-208012c593f9",
+              "name": "notification_title",
+              "type": "string",
+              "value": "={{ $json.ci_status === \"failure_detected\"\n  ? \"CI Failure: \" + ($json.workflow_name || \"Unknown workflow\")\n  : $json.event_type === \"workflow_error\"\n    ? \"RepoPilot Error: \" + ($json.error_workflow || \"Unknown workflow\")\n    : \"Issue Triage: \" + ($json.issue_title || \"Unknown issue\") }}"
+            },
+            {
+              "id": "e7f8d6bc-1c68-4bd1-b556-b9430d404b21",
+              "name": "notification_message",
+              "type": "string",
+              "value": "={{\n  $json.ci_status === \"failure_detected\"\n    ? \"Repository: \" + ($json.repository || \"Unknown\") +\n      \"\\nWorkflow: \" + ($json.workflow_name || \"Unknown\") +\n      \"\\nConclusion: \" + ($json.workflow_conclusion || \"Unknown\") +\n      \"\\nRun: \" + ($json.failure_url || \"No URL available\")\n  : $json.event_type === \"workflow_error\"\n    ? \"Failed node: \" + ($json.error_node || \"Unknown\") +\n      \"\\nError: \" + ($json.error_message || \"Unknown error\") +\n      \"\\nTime: \" + ($json.error_time || \"Unknown\") +\n      \"\\nExecution: \" + ($json.error_execution_url || \"No URL available\")\n    : \"Repository: \" + ($json.repository || \"Unknown\") +\n      \"\\nIssue #\" + ($json.issue_number ?? \"Unknown\") +\n      \": \" + ($json.issue_title || \"Untitled\") +\n      \"\\nCategory: \" + ($json.suggested_category || \"Unclassified\") +\n      \"\\nPriority: \" + ($json.suggested_priority || \"Unassigned\") +\n      \"\\nLabels: \" + (\n        Array.isArray($json.suggested_labels)\n          ? $json.suggested_labels.join(\", \")\n          : JSON.parse($json.suggested_labels || \"[]\").join(\", \")\n      ) +\n      \"\\nReason: \" + ($json.triage_reason || \"Not provided\")\n}}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        160
+      ],
+      "id": "221700d5-5c0c-4131-a76c-c9ad2688470f",
+      "name": "Prepare Notification Message"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ $json.notification_icon }} RepoPilot\n\n{{ $json.notification_title }}\n\n{{ $json.notification_message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        160
+      ],
+      "id": "2aa83edd-6b9f-4b4b-b251-f1a48dbb4d94",
+      "name": "Send Telegram Alert",
+      "webhookId": "170f83a4-d017-4cba-b070-909949f59b03",
+      "credentials": {
+        "telegramApi": {
+          "id": "sFkHNe0JH3AaAsPI",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aae7918f-e46e-4878-b4fa-1b5554a3ad56",
+              "name": "notification_status",
+              "value": "pending",
+              "type": "string"
+            },
+            {
+              "id": "f1866116-32c8-45c6-aeec-010e006a1f3a",
+              "name": "notification_error",
+              "value": "Telegram delivery failed",
+              "type": "string"
+            },
+            {
+              "id": "3f472eb5-b358-4eae-805c-9b1641481ab2",
+              "name": "event_id",
+              "value": "={{ $('Prepare Notification Message').item.json.event_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "ab4b9923-831a-496f-8d28-af872e75b766",
+              "name": "event_type",
+              "value": "={{ $('Prepare Notification Message').item.json.event_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        256
+      ],
+      "id": "aadadc8d-411c-4caf-b1c1-e4068286bf2b",
+      "name": "Notification Failed"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f40a955-7c71-4d82-a0af-aad47f6107cc",
+              "name": "notification_status",
+              "value": "sent",
+              "type": "string"
+            },
+            {
+              "id": "6a3b3b28-57e0-4f26-a74b-19ac38947685",
+              "name": "event_id",
+              "value": "={{ $('Prepare Notification Message').item.json.event_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "6d7f7064-aada-48b7-87bd-e4c1b2c36669",
+              "name": "event_type",
+              "value": "={{ $('Prepare Notification Message').item.json.event_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        64
+      ],
+      "id": "df8b5bbf-2149-4c1a-a6cf-6292ddb7e57a",
+      "name": "Notification Succeeded"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e92a1f69-f2f6-4ca8-b76e-35ca19198618",
+              "leftValue": "={{ $json.event_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        160
+      ],
+      "id": "20e60f19-2e37-4a87-b164-8f8fc8ac944f",
+      "name": "Is Tracked Event"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "dyLbI2Cq2fvT4quz",
+          "mode": "list",
+          "cachedResultName": "RepoPilot_Events",
+          "cachedResultUrl": "/projects/58OCYX8r9y4I0Yz5/datatables/dyLbI2Cq2fvT4quz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "event_id",
+              "keyValue": "={{ $json.event_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "notification_status": "={{ $json.notification_status }}",
+            "last_attempt_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "event_id",
+              "displayName": "event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "repository",
+              "displayName": "repository",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "run_url",
+              "displayName": "run_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "conclusion",
+              "displayName": "conclusion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notification_status",
+              "displayName": "notification_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_attempt_at",
+              "displayName": "last_attempt_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        64
+      ],
+      "id": "f8b040fd-20f3-4276-9d66-b28fbbc099bf",
+      "name": "Update Notification Status"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        256
+      ],
+      "id": "6ccdfa96-39cd-48f8-bfe3-44502a61c29e",
+      "name": "Untracked Event (no row to update)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "NotificationServiceTrigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification Message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Alert": {
+      "main": [
+        [
+          {
+            "node": "Notification Succeeded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notification Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notification Succeeded": {
+      "main": [
+        [
+          {
+            "node": "Is Tracked Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notification Failed": {
+      "main": [
+        [
+          {
+            "node": "Is Tracked Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Tracked Event": {
+      "main": [
+        [
+          {
+            "node": "Update Notification Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Untracked Event (no row to update)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9bUhWZrP2EtVTjf7",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "5baba6a4-c0f4-4c73-9b83-44ae26f82904",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a9a2bd3d3e3c166f28572eb49d334b513ddca5ffff6c29f32687a2b58f08ce95"
+  },
+  "nodeGroups": [],
+  "id": "5bY1bI5ZknOYm5p9",
+  "tags": []
+}

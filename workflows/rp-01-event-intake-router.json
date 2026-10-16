@@ -1,0 +1,508 @@
+{
+  "name": "RP-01 Event Intake & Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "repopilot/github-events",
+        "options": {
+          "rawBody": true
+        },
+        "responseMode": "responseNode"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        80
+      ],
+      "id": "8e4d0495-956e-410a-b498-5fc2967ab039",
+      "name": "TriggerWebhook",
+      "webhookId": "85b67917-9bd1-4966-8bc3-c70015247968"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ebdabdbc-2a04-4d74-996f-07baca8e2f33",
+                    "leftValue": "={{ $('NormalizeEventData').item.json.event_type }}",
+                    "rightValue": "issues",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b49c8414-b3ec-43e3-a940-a331236c4010",
+                    "leftValue": "={{ $('NormalizeEventData').item.json.event_type }}",
+                    "rightValue": "workflow_run",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        80
+      ],
+      "id": "9af940a1-36bd-475c-bc23-c63f03a87091",
+      "name": "EventRouter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c26d3072-b6da-4d98-be8c-5395ee429bdc",
+              "name": "event_action",
+              "value": "={{ $('TriggerWebhook').item.json.body.action }}",
+              "type": "string"
+            },
+            {
+              "id": "9662ab28-c659-4da6-bf6f-f23a0b029dec",
+              "name": "issue_number",
+              "value": "={{ $('TriggerWebhook').item.json.body.issue.number }}",
+              "type": "number"
+            },
+            {
+              "id": "1576c552-5c08-43af-b585-2d100af11049",
+              "name": "issue_title",
+              "value": "={{ $('TriggerWebhook').item.json.body.issue.title }}",
+              "type": "string"
+            },
+            {
+              "id": "b88973d3-6db6-4654-832b-62dc9168ed27",
+              "name": "repository",
+              "value": "={{ $('TriggerWebhook').item.json.body.repository.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "f89483b9-0055-4e2b-b460-9de209e480cf",
+              "name": "event_type",
+              "value": "={{ $('TriggerWebhook').item.json.headers[\"x-github-event\"] || ($('TriggerWebhook').item.json.body.workflow_run ? \"workflow_run\" : \"issues\") }}",
+              "type": "string"
+            },
+            {
+              "id": "350f2dd6-f577-48cf-815d-947a5f2f8812",
+              "name": "issue_body",
+              "value": "={{ $('TriggerWebhook').item.json.body.issue.body || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "d3ce1483-fb50-457f-a470-245845552361",
+              "name": "workflow_run",
+              "value": "={{ $json.body.workflow_run }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        80
+      ],
+      "id": "986cdae7-7745-4b8b-930d-87dcdaad14eb",
+      "name": "NormalizeEventData"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "HRI2N7bsASlxtuoT",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/HRI2N7bsASlxtuoT",
+          "cachedResultName": "RP-02 Issue Triage"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        1568,
+        -16
+      ],
+      "id": "564aaaf1-dcca-406e-bdd7-1a22eec7f0d8",
+      "name": "Call 'RP-02 Issue Triage'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "imQ5Sz93HPCl1RwA",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/imQ5Sz93HPCl1RwA",
+          "cachedResultName": "RP-03 CI Failure Handler"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        1568,
+        176
+      ],
+      "id": "3289aa3d-d489-4632-b6b0-97a0afd01bb2",
+      "name": "Call 'RP-03 CI Failure Handler'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9a936b87-75a7-4fc5-8f10-51b0b25a897f",
+              "leftValue": "={{ $json.workflow_run.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b31d5d52-0ca7-43ef-9267-c24a53b4712b",
+              "leftValue": "={{ $json.workflow_run.conclusion }}",
+              "rightValue": "failure",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        176
+      ],
+      "id": "ed63552b-9500-4093-80b9-c4bc67030787",
+      "name": "Filter CI events"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8b71839e-4dab-40ba-8834-8a67e8af38cb",
+              "leftValue": "={{ $json.event_action }}",
+              "rightValue": "opened",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "fe00910e-df6e-4ffc-8459-845ba1b11204",
+              "leftValue": "={{ $json.event_action }}",
+              "rightValue": "=reopened",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "c48a03c9-1217-4ce4-983a-186705073cf0",
+              "leftValue": "={{ $json.event_action }}",
+              "rightValue": "edited",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -16
+      ],
+      "id": "fc6f4202-e258-4a36-aea2-cacf92f09944",
+      "name": "Check for opened or edited or reopened issues"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verifies GitHub's X-Hub-Signature-256 header (HMAC-SHA256 of the raw request body)\nconst crypto = require('crypto');\n\n// Must match the Secret set in GitHub > Settings > Webhooks\nconst secret = 'YOUR_GITHUB_WEBHOOK_SECRET';\n\nconst item = $input.first();\nconst headers = item.json.headers || {};\nconst received = headers['x-hub-signature-256'] || '';\n\n// Raw body bytes, kept by the Webhook node's \"Raw Body\" option\nconst rawBody = await this.helpers.getBinaryDataBuffer(0, 'data');\n\nconst expected = 'sha256=' + crypto\n  .createHmac('sha256', secret)\n  .update(rawBody)\n  .digest('hex');\n\nconst a = Buffer.from(received);\nconst b = Buffer.from(expected);\nconst signatureValid = a.length === b.length && crypto.timingSafeEqual(a, b);\n\nreturn [{\n  json: { ...item.json, signature_valid: signatureValid },\n  binary: item.binary,\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        80
+      ],
+      "id": "7c1e7a10-1111-4a1a-9a01-000000000001",
+      "name": "VerifyGitHubSignature"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7c1e7a10-1111-4a1a-9a01-000000000005",
+              "leftValue": "={{ $json.signature_valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        80
+      ],
+      "id": "7c1e7a10-1111-4a1a-9a01-000000000002",
+      "name": "IsSignatureValid"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "7c1e7a10-1111-4a1a-9a01-000000000003",
+      "name": "Respond 202 Accepted"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Invalid signature\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        240
+      ],
+      "id": "7c1e7a10-1111-4a1a-9a01-000000000004",
+      "name": "Respond 401 Unauthorized"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "TriggerWebhook": {
+      "main": [
+        [
+          {
+            "node": "VerifyGitHubSignature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EventRouter": {
+      "main": [
+        [
+          {
+            "node": "Check for opened or edited or reopened issues",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter CI events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NormalizeEventData": {
+      "main": [
+        [
+          {
+            "node": "EventRouter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'RP-03 CI Failure Handler'": {
+      "main": [
+        []
+      ]
+    },
+    "Filter CI events": {
+      "main": [
+        [
+          {
+            "node": "Call 'RP-03 CI Failure Handler'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for opened or edited or reopened issues": {
+      "main": [
+        [
+          {
+            "node": "Call 'RP-02 Issue Triage'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerifyGitHubSignature": {
+      "main": [
+        [
+          {
+            "node": "IsSignatureValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsSignatureValid": {
+      "main": [
+        [
+          {
+            "node": "Respond 202 Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401 Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202 Accepted": {
+      "main": [
+        [
+          {
+            "node": "NormalizeEventData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9bUhWZrP2EtVTjf7",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "instanceId": "a9a2bd3d3e3c166f28572eb49d334b513ddca5ffff6c29f32687a2b58f08ce95"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

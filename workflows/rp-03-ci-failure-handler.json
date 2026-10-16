@@ -1,0 +1,397 @@
+{
+  "name": "RP-03 CI Failure Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7841a917-1475-4aec-bb82-1931320544dd",
+      "name": "CIFailureSubworkflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "630f280f-eef0-4f03-9c3e-5dfa012191c9",
+              "name": "repository",
+              "value": "={{ $json.repository }}",
+              "type": "string"
+            },
+            {
+              "id": "b2715f57-f4e9-4dba-a0ea-8fb18043edf6",
+              "name": "workflow_name",
+              "value": "={{ $json.workflow_run.name }}",
+              "type": "string"
+            },
+            {
+              "id": "764cbb14-5b0b-4b25-9e87-61933cb0eb7d",
+              "name": "workflow_id",
+              "value": "={{ $json.workflow_run.id }}",
+              "type": "string"
+            },
+            {
+              "id": "79f61103-cc50-4c5d-a3c8-1c41511508ec",
+              "name": "workflow_status",
+              "value": "={{ $json.workflow_run.status }}",
+              "type": "string"
+            },
+            {
+              "id": "08f61436-af29-42f8-bfe7-1e1e87275d24",
+              "name": "workflow_conclusion",
+              "value": "={{ $json.workflow_run.conclusion }}",
+              "type": "string"
+            },
+            {
+              "id": "c9316e54-af7f-4075-9641-c4e8536827b7",
+              "name": "failure_url",
+              "value": "={{ $json.workflow_run.html_url || \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "10d385e7-f5a9-4685-bfd7-b38de0db46ff",
+      "name": "ExtractCIFailureDetails"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5643555d-9cd1-4485-95e6-0c7d65400afb",
+              "name": "failure_summary",
+              "value": "={{\n  \"Workflow '\" + $json.workflow_name +\n  \"' failed in repository '\" + $json.repository +\n  \"'. Conclusion: \" + $json.workflow_run.conclusion +\n  \". Run ID: \" + $json.workflow_id + \".\"\n}}",
+              "type": "string"
+            },
+            {
+              "id": "86d85cd2-350e-4686-8a29-6a53b8d59b18",
+              "name": "ci_status",
+              "value": "failure_detected",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "8306266e-78e3-48ba-9e87-33081c62708b",
+      "name": "FailureSummary"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5bY1bI5ZknOYm5p9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5bY1bI5ZknOYm5p9",
+          "cachedResultName": "RP-05: Notification Service"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "3b3030e8-a3ef-4a71-8aed-237d4a405cce",
+      "name": "Call 'RP-05: Notification Service'"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "dyLbI2Cq2fvT4quz",
+          "mode": "list",
+          "cachedResultName": "RepoPilot_Events",
+          "cachedResultUrl": "/projects/58OCYX8r9y4I0Yz5/datatables/dyLbI2Cq2fvT4quz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "event_id",
+              "keyValue": "={{ $('ExtractCIFailureDetails').item.json.workflow_run.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_id": "={{ $json.workflow_id }}",
+            "repository": "={{ $json.repository }}",
+            "workflow_name": "={{ $json.workflow_name }}",
+            "run_url": "={{ $json.failure_url }}",
+            "conclusion": "={{ $json.workflow_conclusion }}",
+            "notification_status": "pending",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "event_id",
+              "displayName": "event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "repository",
+              "displayName": "repository",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "run_url",
+              "displayName": "run_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "conclusion",
+              "displayName": "conclusion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "notification_status",
+              "displayName": "notification_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_attempt_at",
+              "displayName": "last_attempt_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        0
+      ],
+      "id": "3ac8dd21-c021-4913-9434-ab5dfd1dd6f6",
+      "name": "Store CI Failure in Data Table"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "345051f5-17d6-4488-950a-0b26096af090",
+              "name": "event_id",
+              "value": "={{ $('FailureSummary').item.json.workflow_id }}",
+              "type": "string"
+            },
+            {
+              "id": "f58aa98c-6ab4-423b-b157-28d6d3c0adc0",
+              "name": "event_type",
+              "value": "workflow_run",
+              "type": "string"
+            },
+            {
+              "id": "91d7dcaa-39ca-4821-8771-3b6cf73b729c",
+              "name": "ci_status",
+              "value": "={{ $('FailureSummary').item.json.ci_status }}",
+              "type": "string"
+            },
+            {
+              "id": "66d485a1-96be-42a5-9819-b14d4c535276",
+              "name": "repository",
+              "value": "={{ $('FailureSummary').item.json.repository }}",
+              "type": "string"
+            },
+            {
+              "id": "4568f13b-45b5-4f52-a8f4-8532fa43ccd0",
+              "name": "workflow_name",
+              "value": "={{ $('FailureSummary').item.json.workflow_name }}",
+              "type": "string"
+            },
+            {
+              "id": "678d4a3a-e412-42ea-b9f1-bb32bf2cc7e9",
+              "name": "workflow_conclusion",
+              "value": "={{ $('FailureSummary').item.json.workflow_conclusion }}",
+              "type": "string"
+            },
+            {
+              "id": "5a6c3956-04ae-4caa-99ac-c027462603fc",
+              "name": "failure_url",
+              "value": "={{ $('FailureSummary').item.json.failure_url }}",
+              "type": "string"
+            },
+            {
+              "id": "91bb4a67-731c-4ae6-b090-889bee9fd04d",
+              "name": "failure_summary",
+              "value": "={{ $('FailureSummary').item.json.failure_summary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "301690a4-3d85-40e8-b0a4-76589bc09fbf",
+      "name": "Prepare Notification Payload"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "CIFailureSubworkflow": {
+      "main": [
+        [
+          {
+            "node": "ExtractCIFailureDetails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractCIFailureDetails": {
+      "main": [
+        [
+          {
+            "node": "FailureSummary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FailureSummary": {
+      "main": [
+        [
+          {
+            "node": "Store CI Failure in Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store CI Failure in Data Table": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification Payload": {
+      "main": [
+        [
+          {
+            "node": "Call 'RP-05: Notification Service'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "9bUhWZrP2EtVTjf7",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "155fb061-d563-4d72-8a09-1ad99fb5f8f2",
+  "meta": {
+    "instanceId": "a9a2bd3d3e3c166f28572eb49d334b513ddca5ffff6c29f32687a2b58f08ce95"
+  },
+  "nodeGroups": [],
+  "id": "imQ5Sz93HPCl1RwA",
+  "tags": []
+}
