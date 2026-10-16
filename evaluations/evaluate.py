@@ -2,30 +2,41 @@
 import json
 from pathlib import Path
 
+BASE_DIR = Path(__file__).parent
+DATASET_PATH = BASE_DIR / "issues.json"
+PREDICTIONS_PATH = BASE_DIR / "predictions.json"
 
-DATASET_PATH = Path(__file__).parent / "issues.json"
 
-
-def load_dataset():
-    with DATASET_PATH.open("r", encoding="utf-8") as file:
+def load_json(path):
+    with path.open("r", encoding="utf-8") as file:
         return json.load(file)
 
 
-def evaluate(dataset):
-    total = len(dataset)
+def evaluate(dataset, predictions):
+    predictions_by_id = {item["id"]: item for item in predictions}
 
+    total = len(dataset)
     category_correct = 0
     priority_correct = 0
     both_correct = 0
+    missing = []
     errors = []
 
     for issue in dataset:
-        # Predictions will be filled in by the next integration step.
-        predicted_category = issue.get("predicted_category")
-        predicted_priority = issue.get("predicted_priority")
+        prediction = predictions_by_id.get(issue["id"])
 
-        category_ok = predicted_category == issue["expected_category"]
-        priority_ok = predicted_priority == issue["expected_priority"]
+        if prediction is None:
+            missing.append(issue["id"])
+            continue
+
+        category_ok = (
+            prediction.get("predicted_category")
+            == issue["expected_category"]
+        )
+        priority_ok = (
+            prediction.get("predicted_priority")
+            == issue["expected_priority"]
+        )
 
         category_correct += category_ok
         priority_correct += priority_ok
@@ -36,25 +47,32 @@ def evaluate(dataset):
                 "id": issue["id"],
                 "title": issue["title"],
                 "expected_category": issue["expected_category"],
-                "predicted_category": predicted_category,
+                "predicted_category": prediction.get("predicted_category"),
                 "expected_priority": issue["expected_priority"],
-                "predicted_priority": predicted_priority,
+                "predicted_priority": prediction.get("predicted_priority"),
             })
+
+    evaluated = total - len(missing)
 
     return {
         "total": total,
-        "category_accuracy": round(category_correct / total * 100, 2) if total else 0,
-        "priority_accuracy": round(priority_correct / total * 100, 2) if total else 0,
-        "both_correct": round(both_correct / total * 100, 2) if total else 0,
+        "evaluated": evaluated,
+        "missing_predictions": missing,
+        "category_accuracy": round(category_correct / evaluated * 100, 2) if evaluated else 0,
+        "priority_accuracy": round(priority_correct / evaluated * 100, 2) if evaluated else 0,
+        "both_correct": round(both_correct / evaluated * 100, 2) if evaluated else 0,
         "errors": errors,
     }
 
 
 if __name__ == "__main__":
-    dataset = load_dataset()
-    results = evaluate(dataset)
+    dataset = load_json(DATASET_PATH)
+    predictions = load_json(PREDICTIONS_PATH)
+    results = evaluate(dataset, predictions)
 
-    print(f"Total issues: {results['total']}")
+    print(f"Dataset size: {results['total']}")
+    print(f"Issues evaluated: {results['evaluated']}")
+    print(f"Missing predictions: {results['missing_predictions']}")
     print(f"Category accuracy: {results['category_accuracy']}%")
     print(f"Priority accuracy: {results['priority_accuracy']}%")
     print(f"Both correct: {results['both_correct']}%")
