@@ -1,0 +1,143 @@
+
+[
+  {
+    "id": 1,
+    "title": "Login fails after password reset",
+    "body": "Users cannot log in after resetting their passwords.",
+    "expected_category": "bug",
+    "expected_priority": "medium"
+  },
+  {
+    "id": 2,
+    "title": "Add dark mode support",
+    "body": "Please add an optional dark theme to the dashboard.",
+    "expected_category": "feature",
+    "expected_priority": "low"
+  },
+  {
+    "id": 3,
+    "title": "Update API documentation",
+    "body": "The API documentation is missing pagination examples.",
+    "expected_category": "documentation",
+    "expected_priority": "low"
+  },
+  {
+    "id": 4,
+    "title": "Possible SQL injection in search",
+    "body": "User input appears to be inserted directly into a database query. This may allow unauthorized data access.",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "id": 5,
+    "title": "Dashboard returns HTTP 500",
+    "body": "The production dashboard returns HTTP 500 for every user.",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "id": 6,
+    "title": "Add CSV export",
+    "body": "Allow users to export report data as CSV files.",
+    "expected_category": "feature",
+    "expected_priority": "low"
+  },
+  {
+    "id": 7,
+    "title": "Typo in installation guide",
+    "body": "The installation guide contains a spelling mistake in the setup section.",
+    "expected_category": "documentation",
+    "expected_priority": "low"
+  },
+  {
+    "id": 8,
+    "title": "Application deletes saved records",
+    "body": "After updating a record, several previously saved records disappear.",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "id": 9,
+    "title": "Add pagination to issue list",
+    "body": "The issue list should support pagination when there are many issues.",
+    "expected_category": "feature",
+    "expected_priority": "low"
+  },
+  {
+    "id": 10,
+    "title": "Unclear notification behavior",
+    "body": "Notifications sometimes behave strangely. I am not sure what triggers it.",
+    "expected_category": "needs-review",
+    "expected_priority": "low"
+  },
+  {
+    "id": 11,
+    "title": "Search returns incorrect results",
+    "body": "Searching for an exact issue title returns unrelated issues.",
+    "expected_category": "bug",
+    "expected_priority": "medium"
+  },
+  {
+    "id": 12,
+    "title": "Document environment variables",
+    "body": "Add descriptions of the required environment variables to the README.",
+    "expected_category": "documentation",
+    "expected_priority": "low"
+  },
+  {
+    "id": 13,
+    "title": "Add GitLab integration",
+    "body": "Support GitLab repositories in addition to GitHub repositories.",
+    "expected_category": "feature",
+    "expected_priority": "low"
+  },
+  {
+    "id": 14,
+    "title": "CI workflow fails on every commit",
+    "body": "The production deployment pipeline is blocked because the CI workflow fails on every commit.",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  },
+  {
+    "id": 15,
+    "title": "Clarify API authentication examples",
+    "body": "The authentication section does not explain how to pass a bearer token.",
+    "expected_category": "documentation",
+    "expected_priority": "low"
+  },
+  {
+    "id": 16,
+    "title": "Add issue assignment suggestions",
+    "body": "Suggest a suitable team member when a new issue is created.",
+    "expected_category": "feature",
+    "expected_priority": "low"
+  },
+  {
+    "id": 17,
+    "title": "Unexplained application crash",
+    "body": "The app crashes occasionally. No reproduction steps or logs are available.",
+    "expected_category": "needs-review",
+    "expected_priority": "low"
+  },
+  {
+    "id": 18,
+    "title": "Report data is duplicated",
+    "body": "The monthly report displays each transaction twice after the latest update.",
+    "expected_category": "bug",
+    "expected_priority": "medium"
+  },
+  {
+    "id": 19,
+    "title": "Add webhook configuration guide",
+    "body": "Provide a step-by-step guide for configuring repository webhooks.",
+    "expected_category": "documentation",
+    "expected_priority": "low"
+  },
+  {
+    "id": 20,
+    "title": "Possible unauthorized access to private issues",
+    "body": "A user without repository access may be able to retrieve private issue details through the API.",
+    "expected_category": "bug",
+    "expected_priority": "high"
+  }
+]
