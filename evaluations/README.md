@@ -31,6 +31,8 @@ Measure how often RepoPilot's issue triage (RP-02) assigns the correct **categor
 3. Predictions are paired with the expected labels and exported to [`predictions.json`](predictions.json).
 4. Accuracy is calculated in the workflow and independently by [`evaluate.py`](evaluate.py), so the two can be cross-checked.
 
+![RepoPilot AI Evaluation workflow in n8n](evaluation-workflow.png)
+
 ## Results
 
 | Metric | Score |
@@ -43,6 +45,8 @@ Measure how often RepoPilot's issue triage (RP-02) assigns the correct **categor
 Run on 17 October 2026 with `openai/gpt-oss-120b` on Groq.
 
 ### Breakdown
+
+![Priority accuracy by class: high 80%, medium 100%, low 100%](priority-accuracy.png)
 
 | Expected priority | Issues | Correct | Accuracy |
 |---|---|---|---|
