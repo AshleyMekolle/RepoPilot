@@ -1,2 +1,8 @@
 
-[]
+[
+  {
+    "id": 1,
+    "predicted_category": "bug",
+    "predicted_priority": "medium"
+  }
+]
