@@ -85,6 +85,18 @@ Set as the Error Workflow for every RepoPilot workflow. When any of them fails i
 
 **Nodes:** Error Trigger, Edit Fields (Set), IF, Execute Workflow, No Operation
 
+## AI Evaluation
+
+RepoPilot's issue triage was tested against a labelled set of 20 GitHub issues, using the same prompt and model as RP-02.
+
+| Metric | Score |
+|---|---|
+| Category accuracy | **100%** |
+| Priority accuracy | **95%** |
+| Both correct | **95%** |
+
+The one error was a data-loss bug rated `medium` instead of `high`, which points to a specific prompt fix. The full method, results and findings are in [evaluations/](evaluations/).
+
 ## Screenshots
 
 | | |
@@ -115,6 +127,8 @@ Set as the Error Workflow for every RepoPilot workflow. When any of them fails i
 - [x] Webhook signature verification (HMAC-SHA256)
 - [x] Telegram alerts for issue triage, CI failures and system errors
 - [x] Delivery status tracking with automatic retries
+- [x] AI triage evaluation against a labelled dataset (95% fully correct)
+- [ ] Fix data-loss priority rule and re-run the evaluation
 - [ ] Post the AI's triage reason as a comment on the issue
 - [ ] Cap retries and flag events that keep failing to deliver
 - [ ] Move the webhook secret into n8n Variables
