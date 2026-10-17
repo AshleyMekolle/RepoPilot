@@ -71,12 +71,15 @@ if __name__ == "__main__":
     results = evaluate(dataset, predictions)
 
     print(f"Dataset size: {results['total']}")
-    print(f"Issues evaluated: {results['evaluated']}")
+    print(f"Issues evaluated: {results['evaluated']}/{results['total']}")
     print(f"Missing predictions: {results['missing_predictions']}")
     print(f"Category accuracy: {results['category_accuracy']}%")
     print(f"Priority accuracy: {results['priority_accuracy']}%")
     print(f"Both correct: {results['both_correct']}%")
-    print("\nIncorrect predictions:")
 
+    if results["evaluated"] < results["total"]:
+        print("\nWARNING: Results are preliminary; some issues have no predictions.")
+
+    print("\nIncorrect predictions:")
     for error in results["errors"]:
         print(json.dumps(error, indent=2))
