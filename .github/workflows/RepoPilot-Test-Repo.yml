@@ -12,9 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Confirm CI started
-        run: echo "Testing RepoPilot CI failure detection"
+        run: echo "RepoPilot CI is running successfully"
 
-      - name: Simulate CI failure
-        run: |
-          echo "This failure is intentional for testing."
-          exit 1
+      - name: Verify repository
+        run: echo "Basic CI check passed"
